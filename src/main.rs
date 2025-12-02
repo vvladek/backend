@@ -3,12 +3,14 @@ use sqlx::PgPool;
 use serde::Serialize;
 use dotenvy::dotenv;
 
+
 #[derive(Serialize, sqlx::FromRow)]
 struct User {
     name: String,
     email: String,
     password_hash: String,
 }
+
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -18,17 +20,15 @@ async fn main() -> Result<(), sqlx::Error> {
     let app = Router::new().route("/", get({
         let pool = pool.clone();
         move || async move {
-            let users: Vec<User> = sqlx::query_as::<_, User>(
+            let users: Vec<User> = sqlx::query_as!(
+                User,
                 "SELECT name, email, password_hash FROM users"
             )
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+            .fetch_all(&pool).await.unwrap();
             Json(users)
         }
     }));
 
-    // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
