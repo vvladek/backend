@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use serde::Serialize;
 use dotenvy::dotenv;
 
-#[derive(Serialize)]
+#[derive(Serialize, sqlx::FromRow)]
 struct User {
     name: String,
     email: String,
@@ -18,8 +18,7 @@ async fn main() -> Result<(), sqlx::Error> {
     let app = Router::new().route("/", get({
         let pool = pool.clone();
         move || async move {
-            let users: Vec<User> = sqlx::query_as!(
-                User,
+            let users: Vec<User> = sqlx::query_as::<_, User>(
                 "SELECT name, email, password_hash FROM users"
             )
             .fetch_all(&pool)
