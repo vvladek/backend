@@ -1,5 +1,9 @@
-use axum::{routing::get, Router, response::Json};
-use sqlx::PgPool;
+mod app;
+mod handlers;
+
+
+use sqlx::postgres::{PgPoolOptions, PgPool};
+use std::time::Duration;
 use serde::Serialize;
 use dotenvy::dotenv;
 
@@ -10,26 +14,26 @@ struct User {
     password_hash: String,
 }
 
+type DatabasePool = PgPool;
+
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
-    dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL").unwrap();
-    let pool = PgPool::connect(&database_url).await?;
-    let app = Router::new().route("/", get({
-        let pool = pool.clone();
-        move || async move {
-            let users: Vec<User> = sqlx::query_as::<_, User>(
-                "SELECT name, email, password_hash FROM users"
-            )
-            .fetch_all(&pool)
-            .await
-            .unwrap();
-            Json(users)
-        }
-    }));
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    dotenv().ok();
+    let database_url = std::env::var("DATABASE_URL").expect("❌ DATABASE_URL not found");
+    let pool = PgPoolOptions::new()
+        .max_connections(10)
+        .acquire_timeout(Duration::from_secs(3))
+        .connect(&database_url)
+        .await
+        .expect("❌ Failed to connect to database");
+
+    let app = app::create_app(pool);
+
+
+    println!("\n\n\n\n\n🟢 Server has been successfully started");
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    println!("🟢 Listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
