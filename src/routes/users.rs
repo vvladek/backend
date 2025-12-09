@@ -1,8 +1,10 @@
 use axum::{routing::get, Router};
 use crate::handlers::users::get_users;
+use crate::DatabasePool;
 
 
-pub fn users_routes() -> Router {
+
+pub fn users_routes() -> Router<DatabasePool> {
     Router::new()
-        .route("/users", get(get_users))
+        .route("/", get(get_users))
 }

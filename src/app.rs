@@ -1,10 +1,11 @@
-use axum::{routing::get, Router};
-use crate::handlers::users::get_users;
+use axum::Router;
 use crate::DatabasePool;
+use crate::routes::users::users_routes;
+
 
 
 pub fn create_app(pool: DatabasePool) -> Router {
     Router::new()
-        .route("/", get(get_users))
+        .nest("/users", users_routes())
         .with_state(pool)
 }
