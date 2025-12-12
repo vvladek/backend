@@ -13,6 +13,6 @@ pub struct AppState {
 
 pub fn create_app(state: Arc<AppState>) -> Router {
     Router::new()
-        .nest("/users", users_routes())
+        .nest("/api/users", users_routes())
         .with_state(state)
 }

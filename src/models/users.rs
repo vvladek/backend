@@ -16,3 +16,9 @@ pub struct CreateUser {
     pub email: String,
     pub password: String,
 }
+
+#[derive(serde::Deserialize)]
+pub struct UpdateUserPayload {
+    pub name: Option<String>,
+    pub email: Option<String>,
+}

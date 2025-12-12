@@ -1,7 +1,8 @@
-use crate::models::users::{CreateUser, User};
+use crate::models::users::{CreateUser, UpdateUserPayload, User};
 use argon2::{Argon2, password_hash::{PasswordHasher, SaltString}};
 use rand::thread_rng;
 use sqlx::PgPool;
+
 
 
 #[derive(Clone)]
@@ -42,5 +43,39 @@ impl UserService {
         .await?;
 
         Ok(user)
+    }
+
+    pub async fn update_user(&self, id: i32, payload: UpdateUserPayload) -> Result<User, sqlx::Error> {
+        let user = sqlx::query_as::<_, User>(
+            r#"
+            UPDATE users
+            SET 
+                name  = COALESCE($1, name),
+                email = COALESCE($2, email)
+            WHERE id = $3
+            RETURNING *
+            "#,
+        )
+        .bind(payload.name)
+        .bind(payload.email)
+        .bind(id)
+        .fetch_one(&self.db)
+        .await?;
+
+        Ok(user)
+    }
+
+    pub async fn delete_user(&self, id: i32) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            DELETE FROM users
+            WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .execute(&self.db)
+        .await?;
+
+        Ok(())
     }
 }
