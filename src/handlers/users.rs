@@ -1,14 +1,11 @@
 use axum::{ Json, extract::{State} };
-use crate::DatabasePool;
-use crate::User;
+use std::sync::Arc;
+use crate::app::AppState;
+use crate::models::users::User;
 
 
 
-pub async fn get_users(State(pool): State<DatabasePool>) -> Json<Vec<User>> {
-    let users = sqlx::query_as::<_, User>("SELECT name, email, password_hash FROM users")
-        .fetch_all(&pool)
-        .await
-        .expect("❌ Failed to fetch users");
-
+pub async fn get_users(State(state): State<Arc<AppState>>) -> Json<Vec<User>> {
+    let users = state.user_service.get_users().await;
     Json(users)
 }
