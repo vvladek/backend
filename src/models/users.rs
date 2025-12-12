@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 
 
@@ -8,4 +8,11 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password_hash: String
+}
+
+#[derive(Deserialize)]
+pub struct CreateUser {
+    pub name: String,
+    pub email: String,
+    pub password: String,
 }
