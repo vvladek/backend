@@ -13,15 +13,18 @@ pub struct UserService {
 
 
 impl UserService {
+
     pub fn new(db: PgPool) -> Self {
         Self { db }
     }
+
 
     pub async fn get_users(&self) -> Result<Vec<User>, sqlx::Error> {
         sqlx::query_as::<_, User>("SELECT * FROM users")
             .fetch_all(&self.db)
             .await
     }
+
 
     pub async fn create_user(&self, payload: CreateUser) -> sqlx::Result<User> {
         let salt = SaltString::generate(&mut thread_rng());
@@ -45,6 +48,7 @@ impl UserService {
         Ok(user)
     }
 
+
     pub async fn update_user(&self, id: i32, payload: UpdateUserPayload) -> Result<User, sqlx::Error> {
         let user = sqlx::query_as::<_, User>(
             r#"
@@ -65,6 +69,7 @@ impl UserService {
         Ok(user)
     }
 
+
     pub async fn delete_user(&self, id: i32) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
@@ -78,4 +83,5 @@ impl UserService {
 
         Ok(())
     }
+    
 }
